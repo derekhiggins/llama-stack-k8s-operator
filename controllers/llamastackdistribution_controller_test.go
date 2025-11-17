@@ -518,7 +518,7 @@ func TestParseImageMappingOverrides_SingleOverride(t *testing.T) {
 
 	// Test data with single override
 	configMapData := map[string]string{
-		"image-overrides": "rh-dev: quay.io/rhoai/rhoai-fbc-fragment:rhoai-2.25@sha256:3bc98555",
+		"image-overrides": "starter: quay.io/custom/llama-stack:starter",
 	}
 
 	// Call the function
@@ -526,7 +526,7 @@ func TestParseImageMappingOverrides_SingleOverride(t *testing.T) {
 
 	// Assertions
 	require.Len(t, result, 1, "Should have exactly one override")
-	require.Equal(t, "quay.io/rhoai/rhoai-fbc-fragment:rhoai-2.25@sha256:3bc98555", result["rh-dev"], "Override should match expected value")
+	require.Equal(t, "quay.io/custom/llama-stack:starter", result["starter"], "Override should match expected value")
 }
 
 func TestParseImageMappingOverrides_InvalidYAML(t *testing.T) {
@@ -558,7 +558,7 @@ func TestNewLlamaStackDistributionReconciler_WithImageOverrides(t *testing.T) {
 			Namespace: operatorNamespace.Name,
 		},
 		Data: map[string]string{
-			"image-overrides": "rh-dev: quay.io/rhoai/rhoai-fbc-fragment:rhoai-2.25@sha256:3bc98555",
+			"image-overrides": "starter: quay.io/custom/llama-stack:starter",
 			"featureFlags": `enableNetworkPolicy:
     enabled: false`,
 		},
@@ -583,8 +583,8 @@ func TestNewLlamaStackDistributionReconciler_WithImageOverrides(t *testing.T) {
 	require.NoError(t, err, "Should create reconciler successfully")
 	require.NotNil(t, reconciler, "Reconciler should not be nil")
 	require.Len(t, reconciler.ImageMappingOverrides, 1, "Should have one image override")
-	require.Equal(t, "quay.io/rhoai/rhoai-fbc-fragment:rhoai-2.25@sha256:3bc98555",
-		reconciler.ImageMappingOverrides["rh-dev"], "Override should match expected value")
+	require.Equal(t, "quay.io/custom/llama-stack:starter",
+		reconciler.ImageMappingOverrides["starter"], "Override should match expected value")
 	require.False(t, reconciler.EnableNetworkPolicy, "Network policy should be disabled")
 }
 
@@ -609,18 +609,18 @@ func TestConfigMapUpdateTriggersReconciliation(t *testing.T) {
 	}
 	require.NoError(t, k8sClient.Create(t.Context(), configMap))
 
-	// Create LlamaStackDistribution instance using rh-dev
+	// Create LlamaStackDistribution instance using starter
 	instance := NewDistributionBuilder().
 		WithName("test-configmap-update").
 		WithNamespace(namespace.Name).
-		WithDistribution("rh-dev").
+		WithDistribution("starter").
 		Build()
 	require.NoError(t, k8sClient.Create(t.Context(), instance))
 
 	// Create reconciler with initial overrides
 	clusterInfo := &cluster.ClusterInfo{
 		OperatorNamespace:  operatorNamespace.Name,
-		DistributionImages: map[string]string{"rh-dev": "default-rh-dev-image"},
+		DistributionImages: map[string]string{"starter": "default-starter-image"},
 	}
 
 	reconciler, err := controllers.NewLlamaStackDistributionReconciler(
@@ -641,11 +641,11 @@ func TestConfigMapUpdateTriggersReconciliation(t *testing.T) {
 	deployment := &appsv1.Deployment{}
 	waitForResource(t, k8sClient, instance.Namespace, instance.Name, deployment)
 	initialImage := deployment.Spec.Template.Spec.Containers[0].Image
-	require.Equal(t, "default-rh-dev-image", initialImage,
+	require.Equal(t, "default-starter-image", initialImage,
 		"Initial deployment should use distribution image")
 
 	// Update ConfigMap with new overrides
-	configMap.Data["image-overrides"] = "rh-dev: quay.io/rhoai/rhoai-fbc-fragment:rhoai-2.25@sha256:newhash"
+	configMap.Data["image-overrides"] = "starter: quay.io/custom/llama-stack:starter"
 	require.NoError(t, k8sClient.Update(t.Context(), configMap))
 
 	// Simulate ConfigMap update by recreating reconciler (in real scenario this would be triggered by watch)

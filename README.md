@@ -120,13 +120,13 @@ metadata:
   namespace: llama-stack-k8s-operator-system
 data:
   image-overrides: |
-    rh-dev: quay.io/rhoai/rhoai-fbc-fragment:rhoai-2.25@sha256:3bc98555
+    starter-gpu: quay.io/custom/llama-stack:starter-gpu
     starter: quay.io/custom/llama-stack:starter
 ```
 
 ### Configuration Format
 
-Use the distribution name directly as the key (e.g., `rh-dev`, `starter`). The operator will apply these overrides automatically
+Use the distribution name directly as the key (e.g., `starter-gpu`, `starter`). The operator will apply these overrides automatically
 
 ### How It Works
 
@@ -138,13 +138,13 @@ Use the distribution name directly as the key (e.g., `rh-dev`, `starter`). The o
 
 ### Example Usage
 
-To update the LLS Distribution image for all `rh-dev` distributions:
+To update the LLS Distribution image for all `starter` distributions:
 
 ```bash
-kubectl patch configmap llama-stack-operator-config -n llama-stack-k8s-operator-system --type merge -p '{"data":{"image-overrides":"rh-dev: quay.io/opendatahub/llama-stack:latest"}}'
+kubectl patch configmap llama-stack-operator-config -n llama-stack-k8s-operator-system --type merge -p '{"data":{"image-overrides":"starter: quay.io/opendatahub/llama-stack:latest"}}'
 ```
 
-This will cause all LlamaStackDistribution resources using the `rh-dev` distribution to restart with the new image.
+This will cause all LlamaStackDistribution resources using the `starter` distribution to restart with the new image.
 
 ## Developer Guide
 
