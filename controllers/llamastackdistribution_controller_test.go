@@ -667,6 +667,6 @@ func TestConfigMapUpdateTriggersReconciliation(t *testing.T) {
 	waitForResourceWithKeyAndCondition(
 		t, k8sClient, types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace},
 		deployment, func() bool {
-			return deployment.Spec.Template.Spec.Containers[0].Image == "quay.io/rhoai/rhoai-fbc-fragment:rhoai-2.25@sha256:newhash"
+			return deployment.Spec.Template.Spec.Containers[0].Image == "quay.io/custom/llama-stack:starter"
 		}, "Deployment should be updated with new image")
 }

@@ -743,7 +743,7 @@ func (r *LlamaStackDistributionReconciler) findLlamaStackDistributionsForConfigM
 
 	operatorNamespace, err := deploy.GetOperatorNamespace()
 	if err != nil {
-		log.FromContext(context.Background()).Error(err, "Failed to get operator namespace for config map event processing")
+		logger.Error(err, "Failed to get operator namespace for config map event processing")
 		return nil
 	}
 	// If the operator config was changed, we reconcile all LlamaStackDistributions
